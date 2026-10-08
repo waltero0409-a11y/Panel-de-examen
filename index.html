@@ -64,6 +64,10 @@
   .ans.ok{background:var(--okbg);color:var(--ok)} .ans.bad{background:var(--badbg);color:var(--bad)}
   .login{max-width:380px;margin:12vh auto 0;text-align:center}
   @media (max-width:560px){ header h1{font-size:18px} .stat b{font-size:22px} .bar{grid-template-columns:1fr 56px} .bar .track{grid-column:1 / -1;grid-row:2} }
+  .seg{display:inline-flex;gap:4px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:12px;flex-wrap:wrap}
+  .seg button{font:inherit;border:0;background:none;color:var(--mut);padding:8px 14px;border-radius:9px;font-weight:800;font-size:14px;cursor:pointer}
+  .seg button.on{background:var(--grad,#6366f1);color:#fff}
+  .seg button i{font-style:normal;opacity:.8;font-weight:700;margin-left:4px}
 </style>
 </head>
 <body>
@@ -94,7 +98,7 @@
 
     <div class="stats">
       <div class="stat"><b id="sAbierto">—</b><span>Horario abierto ahora</span></div>
-      <div class="stat"><b id="sTec">0</b><span>Técnicos habilitados</span></div>
+      <div class="stat"><b id="sTec">0</b><span>Técnicos en formación</span></div>
       <div class="stat"><b id="sHoy">0</b><span>Intentos hoy</span></div>
       <div class="stat"><b id="sAprob">0%</b><span>Intentos aprobados (total)</span></div>
     </div>
@@ -139,6 +143,7 @@
       </div>
       <div class="card">
         <div class="row" style="justify-content:space-between;margin-bottom:12px"><h2 style="margin:0">Técnicos registrados</h2><input id="tBus" placeholder="Buscar por nombre o cédula" style="max-width:280px"></div>
+        <div class="seg" id="tSeg"><button data-f="act" class="on">En formación<i id="nAct"></i></button><button data-f="ret">Retirados<i id="nRet"></i></button><button data-f="all">Todos<i id="nAll"></i></button></div>
         <div class="tbl"><table><thead><tr><th>Nombre</th><th>Cédula</th><th>Intentos</th><th>Mejor puntaje</th><th>Último intento</th><th>Estado</th><th></th></tr></thead><tbody id="lTec"></tbody></table></div>
       </div>
     </div>
@@ -255,9 +260,11 @@ function pintar(){
 
   // técnicos
   const qt = $('tBus').value.trim().toLowerCase();
-  const tec = D.tecnicos.filter(t => !qt || t.nombre.toLowerCase().includes(qt) || t.cedula.includes(qt));
-  $('lTec').innerHTML = tec.length ? tec.map(t => '<tr><td>'+esc(t.nombre)+'</td><td class="n">'+esc(t.cedula)+'</td><td class="n">'+t.intentos+'</td><td class="n">'+(t.mejor==null?'—':t.mejor+'%')+'</td><td>'+fFH(t.ultimo)+'</td><td><span class="pill '+(t.activo?'p-ok':'p-mut')+'">'+(t.activo?'Habilitado':'Deshabilitado')+'</span></td><td><button class="btn2 btnS" data-ced="'+esc(t.cedula)+'" data-act="'+(!t.activo)+'">'+(t.activo?'Deshabilitar':'Habilitar')+'</button></td></tr>').join('')
-    : '<tr><td colspan="7" class="empty">'+(qt?'Nadie coincide con la búsqueda.':'Todavía no hay técnicos. Pega la lista arriba.')+'</td></tr>';
+  const fT = ($('tSeg').querySelector('.on')||{}).dataset?.f || 'act';
+  $('nAct').textContent='('+D.tecnicos.filter(t=>t.activo).length+')'; $('nRet').textContent='('+D.tecnicos.filter(t=>!t.activo).length+')'; $('nAll').textContent='('+D.tecnicos.length+')';
+  const tec = D.tecnicos.filter(t => (fT==='all' || (fT==='act') === !!t.activo) && (!qt || t.nombre.toLowerCase().includes(qt) || t.cedula.includes(qt)));
+  $('lTec').innerHTML = tec.length ? tec.map(t => '<tr><td>'+esc(t.nombre)+'</td><td class="n">'+esc(t.cedula)+'</td><td class="n">'+t.intentos+'</td><td class="n">'+(t.mejor==null?'—':t.mejor+'%')+'</td><td>'+fFH(t.ultimo)+'</td><td><span class="pill '+(t.activo?'p-ok':'p-mut')+'">'+(t.activo?'En formación':'Retirado')+'</span></td><td><button class="btn2 btnS" data-ced="'+esc(t.cedula)+'" data-act="'+(!t.activo)+'">'+(t.activo?'Retirar':'Reactivar')+'</button></td></tr>').join('')
+    : '<tr><td colspan="7" class="empty">'+(qt?'Nadie coincide con la búsqueda.':fT==='ret'?'No hay técnicos retirados.':fT==='act'&&D.tecnicos.length?'No hay técnicos en formación.':'Todavía no hay técnicos. Pega la lista arriba.')+'</td></tr>';
 
   // resultados
   const qr = $('rBus').value.trim().toLowerCase();
@@ -308,6 +315,7 @@ $('bTec').onclick = async () => {
   catch(e){ msg('mTec', e.message); }
 };
 $('lTec').onclick = async e => { const c = e.target.dataset.ced; if(!c) return;
+  if(e.target.dataset.act==='false'){ const t = D.tecnicos.find(x => x.cedula===c); if(!confirm('¿Retirar a '+(t?t.nombre:c)+'?\n\nYa no podrá entrar a la app, pero su historial y resultados se conservan.')) return; }
   e.target.disabled = true; try{ await rpc('admin_tecnico_activo', {p_cedula:c, p_activo:e.target.dataset.act==='true'}); await cargar(); }catch(er){ alert(er.message); } };
 async function temas(){
   $('temRes').textContent = 'Calculando...';
@@ -348,7 +356,8 @@ function pintarPra(){
 }
 $('pBus').oninput = pintarPra;
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b && b.dataset.t==='tPra') practicas(); });
-$('tBus').oninput = pintar; $('rBus').oninput = pintar;
+$('tBus').oninput = pintar;
+$('tSeg').onclick = e => { const b = e.target.closest('button'); if(!b) return; $('tSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b)); pintar(); }; $('rBus').oninput = pintar;
 
 $('bCsv').onclick = () => {
   const rows = [['Fecha','Hora','Nombre','Cedula','Correctas','Total','Puntaje','Resultado','Minutos']].concat(D.resultados.map(r => [
