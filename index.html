@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel del examen</title>
+<style>
+  :root{--bg:#0b1020;--card:#151e38;--card2:#1b2647;--ink:#eef2ff;--mut:#94a3c7;--line:#26335c;--pri:#6366f1;--pri2:#22d3ee;
+        --grad:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#22d3ee 100%);--ok:#34d399;--okbg:rgba(52,211,153,.14);--bad:#fb7185;--badbg:rgba(251,113,133,.14);--warn:#fbbf24;--warnbg:rgba(251,191,36,.14);color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:15px;
+       background:radial-gradient(1100px 500px at 0% -10%,#27235e 0%,transparent 60%),radial-gradient(900px 500px at 110% 0%,#0e3a4f 0%,transparent 55%),var(--bg);background-attachment:fixed;min-height:100vh}
+  .wrap{max-width:1040px;margin:0 auto;padding:20px 16px 60px}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  .logo{width:44px;height:44px;border-radius:14px;background:var(--grad);display:flex;align-items:center;justify-content:center;flex:none}
+  h1{font-size:22px;margin:0}
+  h2{font-size:17px;margin:0 0 12px}
+  .sub{color:var(--mut);font-size:13px;margin:2px 0 0}
+  .card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
+  .tabs{display:flex;gap:6px;background:rgba(255,255,255,.05);border:1px solid var(--line);padding:5px;border-radius:14px;margin-bottom:16px;flex-wrap:wrap}
+  .tabs button{flex:1;background:none;color:var(--mut);padding:10px 12px;border-radius:10px;font-weight:700;min-width:110px}
+  .tabs button.on{background:var(--grad);color:#fff}
+  button{font:inherit;border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;color:var(--ink)}
+  button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--pri2);outline-offset:2px}
+  .btn{background:var(--grad);color:#fff}
+  .btn2{background:rgba(255,255,255,.07);border:1px solid var(--line)}
+  .btnS{padding:6px 10px;font-size:13px}
+  .btn:disabled{opacity:.5}
+  label{display:block;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  input,textarea{width:100%;font:inherit;font-size:15px;padding:10px 12px;background:#0d1530;color:var(--ink);border:1.5px solid var(--line);border-radius:10px}
+  textarea{min-height:150px;font-family:ui-monospace,Consolas,monospace;font-size:14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .msg{margin-top:12px;padding:10px 12px;border-radius:10px;font-size:14px}
+  .msg.ok{background:var(--okbg);color:var(--ok)} .msg.bad{background:var(--badbg);color:var(--bad)}
+  .tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.5px;background:rgba(255,255,255,.03)}
+  tr:last-child td{border-bottom:0}
+  td.n{font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800}
+  .p-ok{background:var(--okbg);color:var(--ok)} .p-bad{background:var(--badbg);color:var(--bad)} .p-warn{background:var(--warnbg);color:var(--warn)} .p-mut{background:rgba(255,255,255,.07);color:var(--mut)}
+  .code{font-family:ui-monospace,Consolas,monospace;font-size:18px;font-weight:800;letter-spacing:2px;color:var(--pri2)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+  .stat{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .stat b{display:block;font-size:26px;font-variant-numeric:tabular-nums}
+  .stat span{color:var(--mut);font-size:13px}
+  .empty{color:var(--mut);text-align:center;padding:24px}
+  .hidden{display:none!important}
+  select{font:inherit;font-size:14px;padding:9px 12px;background:#0d1530;color:var(--ink);border:1.5px solid var(--line);border-radius:10px;max-width:100%}
+  .bar{display:grid;grid-template-columns:minmax(120px,220px) 1fr 64px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+  .bar:last-child{border-bottom:0}
+  .bar .nm{font-weight:700;min-width:0}
+  .bar .nm small{display:block;color:var(--mut);font-weight:500;font-size:12px}
+  .track{height:14px;background:rgba(255,255,255,.07);border-radius:8px;overflow:hidden}
+  .track i{display:block;height:100%;border-radius:8px}
+  .bar .v{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+  .fq{padding:12px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:64px 1fr;gap:12px}
+  .fq:last-child{border-bottom:0}
+  .fq .e{font-size:20px;font-weight:900;color:var(--bad);font-variant-numeric:tabular-nums}
+  .fq .t{min-width:0;line-height:1.4}
+  .ans{margin-top:8px;padding:8px 10px;border-radius:9px;font-size:14px;line-height:1.4}
+  .ans.ok{background:var(--okbg);color:var(--ok)} .ans.bad{background:var(--badbg);color:var(--bad)}
+  .login{max-width:380px;margin:12vh auto 0;text-align:center}
+  @media (max-width:560px){ header h1{font-size:18px} .stat b{font-size:22px} .bar{grid-template-columns:1fr 56px} .bar .track{grid-column:1 / -1;grid-row:2} }
+  .seg{display:inline-flex;gap:4px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:12px;flex-wrap:wrap}
+  .seg button{font:inherit;border:0;background:none;color:var(--mut);padding:8px 14px;border-radius:9px;font-weight:800;font-size:14px;cursor:pointer}
+  .seg button.on{background:var(--grad,#6366f1);color:#fff}
+  .p-nue{background:rgba(34,211,238,.14);color:#22d3ee} .p-ant{background:rgba(167,139,250,.16);color:#c4b5fd}
+  .rbar{display:inline-block;width:46px;height:6px;border-radius:6px;background:rgba(255,255,255,.1);vertical-align:middle;overflow:hidden;margin-right:4px}
+  .rbar i{display:block;height:100%;background:var(--grad,#6366f1)}
+  td.acts{white-space:nowrap} td.acts .btnS{margin-left:4px}
+  .drop{margin-top:14px;border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;cursor:pointer;display:flex;flex-direction:column;gap:6px;background:rgba(255,255,255,.03)}
+  .drop:hover{border-color:#8b5cf6}
+  .drop span{color:var(--mut);font-size:13px}
+  .thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .thumbs .th{position:relative;width:120px;height:150px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#000}
+  .thumbs .th img{width:100%;height:100%;object-fit:cover}
+  .thumbs .th b{position:absolute;left:6px;top:6px;background:rgba(0,0,0,.65);color:#fff;border-radius:8px;padding:1px 7px;font-size:12px}
+  .thumbs .th button{position:absolute;right:6px;top:6px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.7);color:#fff;font-weight:900;cursor:pointer;padding:0}
+  .pt{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;background:rgba(255,255,255,.02)}
+  .pt .h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+  .pt .h b{font-size:16px}
+  .pt .kp{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px}
+  .pt .kp div{font-size:13px;color:var(--mut)} .pt .kp div b{display:block;font-size:20px;color:var(--ink)}
+  .pt details{margin-top:8px;font-size:14px} .pt summary{cursor:pointer;color:#a78bfa;font-weight:700}
+  .seg button i{font-style:normal;opacity:.8;font-weight:700;margin-left:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- INGRESO -->
+  <div id="vLogin" class="login">
+    <div class="logo" style="margin:0 auto 14px;width:64px;height:64px;border-radius:20px"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></div>
+    <h1>Panel del examen</h1>
+    <p class="sub" style="margin-bottom:18px">Solo para el formador</p>
+    <div class="card" style="text-align:left">
+      <label for="clave">Clave de administrador</label>
+      <input id="clave" type="password" autocomplete="current-password">
+      <div style="height:14px"></div>
+      <button class="btn" id="bLogin" style="width:100%">Entrar</button>
+      <div id="mLogin"></div>
+    </div>
+  </div>
+
+  <!-- PANEL -->
+  <div id="vPanel" class="hidden">
+    <header>
+      <div class="logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></div>
+      <div style="flex:1;min-width:0"><h1>Panel del examen de práctica</h1><p class="sub" id="upd"></p></div>
+      <button class="btn2 btnS" id="bRef">Actualizar</button>
+      <button class="btn2 btnS" id="bOut">Salir</button>
+    </header>
+
+    <div class="stats">
+      <div class="stat"><b id="sAbierto">—</b><span>Horario abierto ahora</span></div>
+      <div class="stat"><b id="sTec">0</b><span>Técnicos activos</span></div>
+      <div class="stat"><b id="sHoy">0</b><span>Intentos hoy</span></div>
+      <div class="stat"><b id="sAprob">0%</b><span>Intentos aprobados (total)</span></div>
+    </div>
+
+    <div class="tabs">
+      <button data-t="tHor" class="on">Horarios</button>
+      <button data-t="tTec">Técnicos</button>
+      <button data-t="tRes">Resultados</button>
+      <button data-t="tTem">Temas a reforzar</button>
+      <button data-t="tPra">Prácticas</button>
+      <button data-t="tPre">Preturno</button>
+      <button data-t="tMen">Menú app</button>
+      <button data-t="tCfg">Clave</button>
+    </div>
+
+    <!-- HORARIOS -->
+    <div id="tHor">
+      <div class="card">
+        <h2>Abrir un horario</h2>
+        <div class="grid">
+          <div><label for="hFecha">Fecha</label><input id="hFecha" type="date"></div>
+          <div><label for="hIni">Desde</label><input id="hIni" type="time" value="08:00"></div>
+          <div><label for="hFin">Hasta</label><input id="hFin" type="time" value="10:00"></div>
+          <div><label for="hCod">Código del día</label><div class="row" style="flex-wrap:nowrap"><input id="hCod" style="text-transform:uppercase;font-weight:800;letter-spacing:1px"><button class="btn2" id="bGen" title="Generar otro código">↻</button></div></div>
+          <div><label for="hNota">Grupo o nota (opcional)</label><input id="hNota" placeholder="Ej. Grupo nuevo ingreso"></div>
+          <div><button class="btn" id="bHor" style="width:100%">Crear horario</button></div>
+        </div>
+        <div id="mHor"></div>
+      </div>
+      <div class="card">
+        <h2>Horarios</h2>
+        <div class="tbl"><table><thead><tr><th>Estado</th><th>Fecha</th><th>Horas</th><th>Código</th><th>Grupo</th><th>Intentos</th><th></th></tr></thead><tbody id="lHor"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- TECNICOS -->
+    <div id="tTec" class="hidden">
+      <div class="card">
+        <h2>Cargar técnicos</h2>
+        <p class="sub" style="margin:-4px 0 12px">Copia de tu Excel las columnas cédula y nombre (en cualquier orden) y pégalas aquí. Si quieres, agrega una tercera columna con <b>nuevo</b> o <b>antiguo</b>; si no la pones, quedan como <b>nuevo</b>. Si la cédula ya existe, se actualiza el nombre y queda activo.</p>
+        <textarea id="tLista" placeholder="1012345678	Juan Pérez&#10;1098765432	María Gómez	antiguo"></textarea>
+        <div class="row" style="margin-top:12px"><button class="btn" id="bTec">Cargar técnicos</button><span class="sub" id="tPrev"></span></div>
+        <div id="mTec"></div>
+      </div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:12px"><h2 style="margin:0">Técnicos registrados</h2><input id="tBus" placeholder="Buscar por nombre o cédula" style="max-width:280px"></div>
+        <div class="seg" id="tSeg"><button data-f="nue" class="on">Nuevos<i id="nNue"></i></button><button data-f="ant">Antiguos<i id="nAnt"></i></button><button data-f="ret">Retirados<i id="nRet"></i></button><button data-f="all">Todos<i id="nAll"></i></button></div>
+        <div class="tbl"><table><thead><tr><th>Nombre</th><th>Cédula</th><th>Etapa</th><th>Ruta</th><th>Examen</th><th>Estado</th><th></th></tr></thead><tbody id="lTec"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- RESULTADOS -->
+    <div id="tRes" class="hidden">
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:12px"><h2 style="margin:0">Resultados</h2><div class="row"><input id="rBus" placeholder="Buscar por nombre o cédula" style="max-width:260px"><button class="btn2" id="bCsv">Descargar para Excel</button></div></div>
+        <div class="tbl"><table><thead><tr><th>Fecha y hora</th><th>Nombre</th><th>Cédula</th><th>Correctas</th><th>Puntaje</th><th>Resultado</th><th>Duración</th></tr></thead><tbody id="lRes"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- TEMAS -->
+    <div id="tTem" class="hidden">
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:6px">
+          <h2 style="margin:0">Temas a reforzar</h2>
+          <div class="row"><label for="temH" style="margin:0">Grupo</label><select id="temH"></select></div>
+        </div>
+        <p class="sub" id="temRes" style="margin:0 0 16px"></p>
+        <div id="temBloques"></div>
+        <p class="sub" style="margin-top:14px"><span class="pill p-bad">Menos de 60%</span> reforzar ya &nbsp; <span class="pill p-warn">60% a 79%</span> repasar &nbsp; <span class="pill p-ok">80% o más</span> dominado</p>
+      </div>
+      <div class="card">
+        <h2>Las 10 preguntas que más se fallan</h2>
+        <p class="sub" style="margin:-6px 0 12px">Úsalas como punto de partida para tu próxima sesión: explica el concepto y vuelve a preguntarlo en clase.</p>
+        <div id="temPreg"></div>
+      </div>
+    </div>
+
+    <!-- PRACTICAS -->
+    <div id="tPra" class="hidden">
+      <div class="card">
+        <h2>Módulos del Laboratorio</h2>
+        <div class="tbl"><table><thead><tr><th>Módulo</th><th>Prácticas</th><th>Técnicos</th><th>Promedio</th></tr></thead><tbody id="lMod"></tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:12px"><h2 style="margin:0">Últimas prácticas</h2><input id="pBus" placeholder="Buscar por nombre o cédula" style="max-width:260px"></div>
+        <div class="tbl"><table><thead><tr><th>Fecha y hora</th><th>Nombre</th><th>Cédula</th><th>Módulo</th><th>Puntaje</th></tr></thead><tbody id="lPra"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- PRETURNO -->
+    <div id="tPre" class="hidden">
+      <div class="card">
+        <h2>Publicar el preturno de la semana</h2>
+        <p class="sub" style="margin:-4px 0 12px">Sube las piezas gráficas. Aparecen en grande arriba del menú de la app, con el botón <b>Registra tu asistencia</b> (el formulario de Claro). Al publicar uno nuevo, el anterior se quita solo.</p>
+        <label for="ptTit">Título</label>
+        <input id="ptTit" placeholder="Ej. Preturno semana 43">
+        <div class="row" style="margin-top:12px;align-items:center"><label for="ptPara" style="margin:0">Lo ven:</label>
+          <select id="ptPara"><option value="antiguo">Solo técnicos antiguos</option><option value="todos">Todos los técnicos</option></select></div>
+        <div class="drop" id="ptDrop"><input type="file" id="ptFile" accept="image/*" multiple hidden>
+          <b>Toca aquí para escoger las imágenes</b><span>JPG o PNG. Puedes escoger varias; se ven en el orden en que las escojas.</span></div>
+        <div class="thumbs" id="ptThumbs"></div>
+        <div class="row" style="margin-top:12px"><button class="btn" id="bPt">Publicar preturno</button><span class="sub" id="ptInfo"></span></div>
+        <div id="mPt"></div>
+      </div>
+      <div class="card">
+        <h2>Preturnos publicados</h2>
+        <div id="ptList"><p class="sub">Cargando…</p></div>
+      </div>
+    </div>
+
+    <!-- MENÚ APP -->
+    <div id="tMen" class="hidden">
+      <div class="card">
+        <h2>¿En qué pestaña va cada cosa?</h2>
+        <p class="sub" style="margin:-4px 0 12px">Así se organiza el menú de los técnicos <b>antiguos</b> (Inicio · En campo · Repasar · Trámites). Marca <b>En Inicio</b> lo que quieres que salga en "Lo más usado en campo" (máximo 6). Los nuevos siguen viendo su ruta y el menú normal. El cambio se guarda solo y lo ven la próxima vez que abran la app.</p>
+        <div id="menList"><p class="sub">Cargando…</p></div>
+        <div id="mMen"></div>
+      </div>
+    </div>
+
+    <!-- CLAVE -->
+    <div id="tCfg" class="hidden">
+      <div class="card" style="max-width:460px">
+        <h2>Cambiar la clave de administrador</h2>
+        <label for="cNueva">Nueva clave (mínimo 8 caracteres)</label>
+        <input id="cNueva" type="password" autocomplete="new-password">
+        <div style="height:12px"></div>
+        <button class="btn" id="bClave">Cambiar clave</button>
+        <div id="mCfg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://ejridjluwgxwpflzcrfb.supabase.co/rest/v1/rpc/';
+const KEY = 'sb_publishable_mcPDFqV8o6TH6EqAVgVuEw_bAHyzgmW';
+const TZ = 'America/Bogota';
+let CLAVE = '', D = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fFecha = t => new Date(t).toLocaleDateString('es-CO', {timeZone:TZ, weekday:'short', day:'numeric', month:'short'});
+const fHora = t => new Date(t).toLocaleTimeString('es-CO', {timeZone:TZ, hour:'numeric', minute:'2-digit'});
+const fFH = t => t ? fFecha(t) + ' · ' + fHora(t) : '—';
+const hoyBog = () => new Date().toLocaleDateString('en-CA', {timeZone:TZ});
+
+async function rpc(fn, body){
+  const r = await fetch(API + fn, {method:'POST', headers:{apikey:KEY, 'Content-Type':'application/json'}, body:JSON.stringify({p_clave:CLAVE, ...body})});
+  const d = await r.json().catch(() => null);
+  if(!r.ok) throw new Error((d && d.message) || 'No se pudo conectar. Revisa tu internet.');
+  return d;
+}
+function msg(el, txt, ok){ $(el).innerHTML = txt ? '<div class="msg '+(ok?'ok':'bad')+'">'+esc(txt)+'</div>' : ''; }
+function genCod(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<6;i++) s+=a[Math.floor(Math.random()*a.length)]; $('hCod').value = s; }
+
+async function entrar(){
+  CLAVE = $('clave').value; msg('mLogin','');
+  $('bLogin').disabled = true;
+  try{ await cargar(); try{sessionStorage.setItem('k', CLAVE)}catch(e){} $('vLogin').classList.add('hidden'); $('vPanel').classList.remove('hidden'); }
+  catch(e){ msg('mLogin', e.message); }
+  $('bLogin').disabled = false;
+}
+
+async function cargar(){
+  D = await rpc('admin_datos', {});
+  $('upd').textContent = 'Actualizado ' + fHora(D.ahora);
+  pintar(); llenarGrupos();
+  if(!$('tTem').classList.contains('hidden')) temas();
+  if(!$('tPra').classList.contains('hidden')) practicas();
+}
+
+function estadoH(h){
+  const now = Date.parse(D.ahora), a = Date.parse(h.inicio), b = Date.parse(h.fin);
+  if(now < a) return ['Programado','p-warn'];
+  if(now <= b) return ['Abierto','p-ok'];
+  return ['Cerrado','p-mut'];
+}
+
+function pintar(){
+  // estadísticas
+  const abierto = D.horarios.find(h => estadoH(h)[0]==='Abierto');
+  $('sAbierto').innerHTML = abierto ? '<span class="code" style="font-size:22px">'+esc(abierto.codigo)+'</span>' : 'Ninguno';
+  $('sTec').textContent = D.tecnicos.filter(t => t.activo).length;
+  const hoy = hoyBog();
+  $('sHoy').textContent = D.resultados.filter(r => new Date(r.fin).toLocaleDateString('en-CA',{timeZone:TZ}) === hoy).length;
+  $('sAprob').textContent = D.resultados.length ? Math.round(D.resultados.filter(r=>r.aprobado).length*100/D.resultados.length)+'%' : '0%';
+
+  // horarios
+  $('lHor').innerHTML = D.horarios.length ? D.horarios.map(h => { const [e,c] = estadoH(h);
+    return '<tr><td><span class="pill '+c+'">'+e+'</span></td><td>'+fFecha(h.inicio)+'</td><td class="n">'+fHora(h.inicio)+' – '+fHora(h.fin)+'</td><td><span class="code">'+esc(h.codigo)+'</span></td><td>'+esc(h.nota||'')+'</td><td class="n">'+h.intentos+'</td><td>'+(e!=='Cerrado'?'<button class="btn2 btnS" data-cerrar="'+h.id+'">Cerrar ya</button>':'')+'</td></tr>'; }).join('')
+    : '<tr><td colspan="7" class="empty">Todavía no hay horarios. Crea el primero arriba.</td></tr>';
+
+  // técnicos
+  const qt = $('tBus').value.trim().toLowerCase();
+  const fT = ($('tSeg').querySelector('.on')||{}).dataset?.f || 'nue';
+  const act = D.tecnicos.filter(t=>t.activo);
+  $('nNue').textContent='('+act.filter(t=>t.etapa!=='antiguo').length+')'; $('nAnt').textContent='('+act.filter(t=>t.etapa==='antiguo').length+')';
+  $('nRet').textContent='('+D.tecnicos.filter(t=>!t.activo).length+')'; $('nAll').textContent='('+D.tecnicos.length+')';
+  const pasa = t => fT==='all' || (fT==='ret' ? !t.activo : t.activo && (fT==='ant') === (t.etapa==='antiguo'));
+  const tec = D.tecnicos.filter(t => pasa(t) && (!qt || t.nombre.toLowerCase().includes(qt) || t.cedula.includes(qt)));
+  const ruta = t => t.ruta_total ? '<span class="rbar"><i style="width:'+Math.round((t.ruta_ok||0)*100/t.ruta_total)+'%"></i></span> '+(t.ruta_ok||0)+'/'+t.ruta_total : '—';
+  $('lTec').innerHTML = tec.length ? tec.map(t => '<tr><td>'+esc(t.nombre)+'</td><td class="n">'+esc(t.cedula)+'</td>'
+    + '<td><span class="pill '+(t.etapa==='antiguo'?'p-ant':'p-nue')+'">'+(t.etapa==='antiguo'?'Antiguo':'Nuevo')+'</span></td>'
+    + '<td class="n">'+ruta(t)+'</td>'
+    + '<td class="n">'+(t.mejor==null?'—':'<b>'+t.mejor+'%</b> <span class="sub">· '+t.intentos+(t.intentos==1?' intento':' intentos')+'</span>')+'</td>'
+    + '<td><span class="pill '+(t.activo?'p-ok':'p-mut')+'">'+(t.activo?'Activo':'Retirado')+'</span></td>'
+    + '<td class="acts">'+(t.activo?'<button class="btn2 btnS" data-et="'+esc(t.cedula)+'" data-to="'+(t.etapa==='antiguo'?'nuevo':'antiguo')+'">'+(t.etapa==='antiguo'?'A inducción':'A operación ›')+'</button>':'')
+    + '<button class="btn2 btnS" data-ced="'+esc(t.cedula)+'" data-act="'+(!t.activo)+'">'+(t.activo?'Retirar':'Reactivar')+'</button></td></tr>').join('')
+    : '<tr><td colspan="7" class="empty">'+(qt?'Nadie coincide con la búsqueda.':fT==='ret'?'No hay técnicos retirados.':fT==='nue'&&D.tecnicos.length?'No hay técnicos nuevos.':fT==='ant'&&D.tecnicos.length?'No hay técnicos antiguos.':'Todavía no hay técnicos. Pega la lista arriba.')+'</td></tr>';
+
+  // resultados
+  const qr = $('rBus').value.trim().toLowerCase();
+  const res = D.resultados.filter(r => !qr || r.nombre.toLowerCase().includes(qr) || r.cedula.includes(qr));
+  $('lRes').innerHTML = res.length ? res.map(r => { const min = Math.round((Date.parse(r.fin)-Date.parse(r.inicio))/60000);
+    return '<tr><td>'+fFH(r.fin)+'</td><td>'+esc(r.nombre)+'</td><td class="n">'+esc(r.cedula)+'</td><td class="n">'+r.correctas+' / '+r.total+'</td><td class="n"><b>'+r.puntaje+'%</b></td><td><span class="pill '+(r.aprobado?'p-ok':'p-bad')+'">'+(r.aprobado?'Aprobado':'No aprobado')+'</span></td><td class="n">'+min+' min</td></tr>'; }).join('')
+    : '<tr><td colspan="7" class="empty">'+(qr?'Nadie coincide con la búsqueda.':'Todavía no hay intentos presentados.')+'</td></tr>';
+}
+
+function leerLista(){
+  return $('tLista').value.split(/\r?\n/).map(l => l.split(/\t|;|,/).map(x => x.trim()).filter(Boolean)).filter(p => p.length >= 2).map(p => {
+    const iCed = p.findIndex(x => /^\d[\d.\s]{4,}$/.test(x));
+    if(iCed < 0) return null;
+    const cedula = p[iCed].replace(/[.\s]/g,'');
+    const iEt = p.findIndex((x,i) => i!==iCed && /^(nuevo|antiguo)$/i.test(x));
+    const etapa = iEt >= 0 ? p[iEt].toLowerCase() : null;
+    const nombre = p.filter((_,i) => i!==iCed && i!==iEt).join(' ');
+    return etapa ? {cedula, nombre, etapa} : {cedula, nombre};
+  }).filter(Boolean);
+}
+
+$('bLogin').onclick = entrar;
+$('clave').addEventListener('keydown', e => { if(e.key==='Enter') entrar(); });
+$('bRef').onclick = () => cargar().catch(e => alert(e.message));
+$('bOut').onclick = () => { try{sessionStorage.removeItem('k')}catch(e){} location.reload(); };
+document.querySelector('.tabs').onclick = e => { const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x===b));
+  ['tHor','tTec','tRes','tTem','tPra','tPre','tMen','tCfg'].forEach(t => $(t).classList.toggle('hidden', t!==b.dataset.t)); };
+$('bGen').onclick = genCod;
+
+$('bHor').onclick = async () => {
+  msg('mHor','');
+  const f = $('hFecha').value, a = $('hIni').value, b = $('hFin').value;
+  if(!f || !a || !b){ msg('mHor','Escoge la fecha y las horas.'); return; }
+  try{
+    await rpc('admin_crear_horario', {p_inicio:f+'T'+a+':00-05:00', p_fin:f+'T'+b+':00-05:00', p_codigo:$('hCod').value, p_nota:$('hNota').value});
+    msg('mHor','Horario creado. Dales a los técnicos el código '+$('hCod').value.toUpperCase()+'.', true);
+    genCod(); $('hNota').value=''; await cargar();
+  }catch(e){ msg('mHor', e.message); }
+};
+$('lHor').onclick = async e => { const id = e.target.dataset.cerrar; if(!id) return;
+  e.target.disabled = true; try{ await rpc('admin_cerrar_horario', {p_id:+id}); await cargar(); }catch(er){ alert(er.message); } };
+
+$('tLista').oninput = () => { const n = leerLista().length; $('tPrev').textContent = n ? n+' técnico(s) listos para cargar' : ''; };
+$('bTec').onclick = async () => {
+  msg('mTec','');
+  const l = leerLista();
+  if(!l.length){ msg('mTec','No encontré filas con cédula y nombre. Pega dos columnas: cédula y nombre.'); return; }
+  try{ const n = await rpc('admin_guardar_tecnicos', {p_lista:l}); msg('mTec', n+' técnico(s) cargados y habilitados.', true); $('tLista').value=''; $('tPrev').textContent=''; await cargar(); }
+  catch(e){ msg('mTec', e.message); }
+};
+$('lTec').onclick = async e => {
+  const ce = e.target.dataset.et;
+  if(ce){ const t = D.tecnicos.find(x => x.cedula===ce), to = e.target.dataset.to;
+    if(!confirm((to==='antiguo'?'¿Pasar a operación a ':'¿Devolver a inducción a ')+(t?t.nombre:ce)+'?')) return;
+    e.target.disabled = true; try{ await rpc('admin_tecnico_etapa', {p_cedula:ce, p_etapa:to}); await cargar(); }catch(er){ alert(er.message); } return; }
+  const c = e.target.dataset.ced; if(!c) return;
+  if(e.target.dataset.act==='false'){ const t = D.tecnicos.find(x => x.cedula===c); if(!confirm('¿Retirar a '+(t?t.nombre:c)+'?\n\nYa no podrá entrar a la app, pero su historial y resultados se conservan.')) return; }
+  e.target.disabled = true; try{ await rpc('admin_tecnico_activo', {p_cedula:c, p_activo:e.target.dataset.act==='true'}); await cargar(); }catch(er){ alert(er.message); } };
+async function temas(){
+  $('temRes').textContent = 'Calculando...';
+  try{
+    const h = $('temH').value;
+    const t = await rpc('admin_temas', {p_horario: h ? +h : null});
+    if(!t.intentos){ $('temRes').textContent = 'Todavía no hay intentos en este grupo.'; $('temBloques').innerHTML=''; $('temPreg').innerHTML='<div class="empty">Sin datos todavía.</div>'; return; }
+    $('temRes').textContent = 'Basado en '+t.intentos+' intento(s) de '+t.tecnicos+' técnico(s). Ordenado del tema más débil al más fuerte.';
+    const col = p => p < 60 ? 'var(--bad)' : (p < 80 ? 'var(--warn)' : 'var(--ok)');
+    $('temBloques').innerHTML = t.bloques.map(b => '<div class="bar"><div class="nm">'+esc(b.bloque)+'<small>'+b.buenas+' de '+b.respuestas+' respuestas bien</small></div><div class="track"><i style="width:'+b.pct+'%;background:'+col(b.pct)+'"></i></div><div class="v" style="color:'+col(b.pct)+'">'+b.pct+'%</div></div>').join('');
+    $('temPreg').innerHTML = t.preguntas.length ? t.preguntas.map(q => '<div class="fq"><div class="e">'+Math.round(q.pct_error)+'%</div><div class="t">'+esc(q.pregunta)+'<div class="sub" style="margin-top:4px">'+esc(q.bloque)+' · la fallaron '+q.malas+' de '+q.veces+' veces</div>'
+      + '<div class="ans ok">✓ Respuesta correcta: <b>'+esc(q.correcta)+'</b></div>'
+      + (q.error_comun ? '<div class="ans bad">✗ El error más común: '+esc(q.error_comun)+'</div>' : '')
+      + (q.sin_resp ? '<div class="sub" style="margin-top:6px">'+q.sin_resp+' la dejaron sin responder</div>' : '')
+      + (q.explicacion ? '<div class="sub" style="margin-top:6px">'+esc(q.explicacion)+'</div>' : '')
+      + '</div></div>').join('') : '<div class="empty">No hay preguntas falladas. ¡Buen trabajo del grupo!</div>';
+  }catch(e){ $('temRes').textContent = e.message; }
+}
+function llenarGrupos(){
+  const sel = $('temH'), v = sel.value;
+  sel.innerHTML = '<option value="">Todos los intentos</option>' + D.horarios.filter(h => h.intentos > 0).map(h => '<option value="'+h.id+'">'+fFecha(h.inicio)+' · '+fHora(h.inicio)+(h.nota?' · '+esc(h.nota):'')+' ('+h.intentos+')</option>').join('');
+  sel.value = [...sel.options].some(o => o.value===v) ? v : '';
+}
+$('temH').onchange = temas;
+document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b && b.dataset.t==='tTem') temas(); });
+let PR = null;
+async function practicas(){
+  try{ PR = await rpc('admin_practicas', {}); pintarPra(); }
+  catch(e){ $('lMod').innerHTML = '<tr><td colspan="4" class="empty">'+esc(e.message)+'</td></tr>'; }
+}
+function pintarPra(){
+  if(!PR) return;
+  const pc = v => v==null ? '—' : '<span class="pill '+(v>=80?'p-ok':v>=60?'p-warn':'p-bad')+'">'+v+'%</span>';
+  $('lMod').innerHTML = PR.modulos.length ? PR.modulos.map(m => '<tr><td>'+esc(m.titulo)+'</td><td class="n">'+m.practicas+'</td><td class="n">'+m.tecnicos+'</td><td>'+pc(m.promedio)+'</td></tr>').join('') : '<tr><td colspan="4" class="empty">Todavía no hay módulos cargados.</td></tr>';
+  const q = $('pBus').value.trim().toLowerCase();
+  const l = PR.recientes.filter(r => !q || r.nombre.toLowerCase().includes(q) || r.cedula.includes(q));
+  $('lPra').innerHTML = l.length ? l.map(r => '<tr><td>'+fFH(r.fecha)+'</td><td>'+esc(r.nombre)+'</td><td class="n">'+esc(r.cedula)+'</td><td>'+esc(r.modulo)+'</td><td>'+pc(r.puntaje)+'</td></tr>').join('') : '<tr><td colspan="5" class="empty">'+(q?'Nadie coincide con la búsqueda.':'Todavía no hay prácticas.')+'</td></tr>';
+}
+$('pBus').oninput = pintarPra;
+document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b && b.dataset.t==='tPra') practicas(); });
+$('tBus').oninput = pintar;
+$('tSeg').onclick = e => { const b = e.target.closest('button'); if(!b) return; $('tSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b)); pintar(); }; $('rBus').oninput = pintar;
+
+$('bCsv').onclick = () => {
+  const rows = [['Fecha','Hora','Nombre','Cedula','Correctas','Total','Puntaje','Resultado','Minutos']].concat(D.resultados.map(r => [
+    new Date(r.fin).toLocaleDateString('es-CO',{timeZone:TZ}), fHora(r.fin), r.nombre, r.cedula, r.correctas, r.total, String(r.puntaje).replace('.',','), r.aprobado?'Aprobado':'No aprobado', Math.round((Date.parse(r.fin)-Date.parse(r.inicio))/60000)]));
+  const csv = '﻿' + rows.map(r => r.map(x => '"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download = 'resultados_examen_'+hoyBog()+'.csv'; a.click();
+};
+
+/* ---------- PRETURNO ---------- */
+let PT_IMGS = [];
+function reducir(file){ return new Promise((ok, mal) => {
+  const r = new FileReader(); r.onerror = () => mal(new Error('No se pudo leer '+file.name));
+  r.onload = () => { const im = new Image(); im.onerror = () => mal(new Error(file.name+' no es una imagen válida'));
+    im.onload = () => { const max = 1280, k = Math.min(1, max / Math.max(im.width, im.height));
+      const c = document.createElement('canvas'); c.width = Math.round(im.width*k); c.height = Math.round(im.height*k);
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0,0,c.width,c.height); g.drawImage(im, 0, 0, c.width, c.height);
+      ok(c.toDataURL('image/jpeg', 0.82)); };
+    im.src = r.result; };
+  r.readAsDataURL(file); }); }
+function pintarThumbs(){
+  $('ptThumbs').innerHTML = PT_IMGS.map((s,i) => '<div class="th"><img src="'+s+'" alt=""><b>'+(i+1)+'</b><button data-q="'+i+'" title="Quitar">×</button></div>').join('');
+  const kb = Math.round(PT_IMGS.reduce((a,s) => a + s.length*0.75, 0)/1024);
+  $('ptInfo').textContent = PT_IMGS.length ? PT_IMGS.length+' imagen(es) · '+kb+' KB' : '';
+}
+$('ptDrop').onclick = () => $('ptFile').click();
+$('ptFile').onchange = async e => {
+  msg('mPt', '');
+  for(const f of e.target.files){ try{ PT_IMGS.push(await reducir(f)); }catch(er){ msg('mPt', er.message); } }
+  e.target.value = ''; pintarThumbs();
+};
+$('ptThumbs').onclick = e => { const q = e.target.dataset.q; if(q===undefined) return; PT_IMGS.splice(+q, 1); pintarThumbs(); };
+$('bPt').onclick = async () => {
+  const tit = $('ptTit').value.trim();
+  if(!tit){ msg('mPt', 'Escribe un título.'); return; }
+  if(!PT_IMGS.length){ msg('mPt', 'Agrega al menos una imagen.'); return; }
+  if(!confirm('¿Publicar "'+tit+'"? El preturno anterior se quita de la app.')) return;
+  $('bPt').disabled = true; $('bPt').textContent = 'Publicando…';
+  try{ await rpc('admin_preturno_publicar', {p_titulo:tit, p_para:$('ptPara').value, p_imagenes:PT_IMGS});
+    msg('mPt', 'Publicado. Los técnicos lo ven la próxima vez que abran la app.', true);
+    PT_IMGS = []; $('ptTit').value = ''; pintarThumbs(); preturnos(); }
+  catch(er){ msg('mPt', er.message); }
+  $('bPt').disabled = false; $('bPt').textContent = 'Publicar preturno';
+};
+async function preturnos(){
+  try{ const L = await rpc('admin_preturnos', {});
+    $('ptList').innerHTML = L.length ? L.map(p => '<div class="pt"><div class="h"><div><b>'+esc(p.titulo)+'</b><div class="sub">'+fFH(p.creado)+' · '+p.n+' imagen(es) · '+(p.para==='todos'?'Todos los técnicos':'Solo antiguos')+'</div></div>'
+      + '<div>'+(p.activo?'<span class="pill p-ok">En la app</span> <button class="btn2 btnS" data-quitar="'+p.id+'">Quitar</button>':'<span class="pill p-mut">Ya no está</span>')+'</div></div>'
+      + '<div class="kp"><div><b>'+p.vistos+' / '+p.publico+'</b>lo vieron</div><div><b>'+p.registros+'</b>tocaron "Registra tu asistencia"</div></div>'
+      + (p.faltan.length ? '<details><summary>Faltan por verlo ('+p.faltan.length+')</summary>'+p.faltan.map(esc).join(', ')+'</details>' : '')
+      + '</div>').join('') : '<p class="sub">Todavía no has publicado ningún preturno.</p>';
+  }catch(er){ $('ptList').innerHTML = '<p class="sub">'+esc(er.message)+'</p>'; }
+}
+$('ptList').onclick = async e => { const id = e.target.dataset.quitar; if(!id) return;
+  if(!confirm('¿Quitar este preturno de la app?')) return;
+  try{ await rpc('admin_preturno_quitar', {p_id:+id}); preturnos(); }catch(er){ alert(er.message); } };
+document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b && b.dataset.t==='tPre') preturnos(); });
+
+/* ---------- MENÚ APP ---------- */
+const SECS = [['campo','En campo'],['repasar','Repasar'],['tramites','Trámites']];
+async function menuApp(){
+  try{ const d = await rpc('admin_menu', {});
+    const fila = (tipo, x) => '<tr'+(x.activo?'':' style="opacity:.5"')+'><td>'+esc(x.titulo)+(x.activo?'':' <span class="sub">(oculto)</span>')+'</td><td>'+(tipo==='modulo'?'Módulo':'Enlace')+'</td><td><select data-tipo="'+tipo+'" data-id="'+esc(x.id)+'">'+SECS.map(([v,t]) => '<option value="'+v+'"'+(x.seccion===v?' selected':'')+'>'+t+'</option>').join('')+'</select></td>'
+      + '<td style="text-align:center"><input type="checkbox" class="chkIni" data-tipo="'+tipo+'" data-id="'+esc(x.id)+'"'+(x.inicio?' checked':'')+' style="width:20px;height:20px;cursor:pointer"></td></tr>';
+    $('menList').innerHTML = '<div class="tbl"><table><thead><tr><th>Nombre</th><th>Tipo</th><th>Pestaña</th><th style="text-align:center">En Inicio</th></tr></thead><tbody>'
+      + d.modulos.map(m => fila('modulo', m)).join('') + d.enlaces.map(e => fila('enlace', e)).join('') + '</tbody></table></div>';
+  }catch(er){ $('menList').innerHTML = '<p class="sub">'+esc(er.message)+'</p>'; }
+}
+$('menList').onchange = async e => {
+  const ck = e.target.closest('.chkIni');
+  if(ck){ const n = $('menList').querySelectorAll('.chkIni:checked').length;
+    if(ck.checked && n > 6){ ck.checked = false; msg('mMen', 'Máximo 6 accesos en Inicio.'); return; }
+    ck.disabled = true;
+    try{ await rpc('admin_menu_inicio', {p_tipo:ck.dataset.tipo, p_id:ck.dataset.id, p_inicio:ck.checked}); msg('mMen', 'Guardado.', true); setTimeout(() => msg('mMen',''), 1500); }
+    catch(er){ ck.checked = !ck.checked; msg('mMen', er.message); }
+    ck.disabled = false; return; }
+  const sel = e.target.closest('select'); if(!sel) return;
+  sel.disabled = true;
+  try{ await rpc('admin_menu_seccion', {p_tipo:sel.dataset.tipo, p_id:sel.dataset.id, p_seccion:sel.value}); msg('mMen', 'Guardado.', true); setTimeout(() => msg('mMen',''), 1500); }
+  catch(er){ msg('mMen', er.message); }
+  sel.disabled = false; };
+document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('button'); if(b && b.dataset.t==='tMen') menuApp(); });
+
+$('bClave').onclick = async () => {
+  msg('mCfg','');
+  const n = $('cNueva').value;
+  try{ await rpc('admin_cambiar_clave', {p_nueva:n}); CLAVE = n; try{sessionStorage.setItem('k', n)}catch(e){} $('cNueva').value=''; msg('mCfg','Clave cambiada. Usa la nueva la próxima vez.', true); }
+  catch(e){ msg('mCfg', e.message); }
+};
+
+$('hFecha').value = hoyBog(); genCod();
+try{ const k = sessionStorage.getItem('k'); if(k){ $('clave').value = k; entrar(); } }catch(e){}
+</script>
+</body>
+</html>
